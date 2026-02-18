@@ -1,0 +1,37 @@
+--Users Table Creation
+
+USERS TABLE
+CREATE TABLE users (
+    user_id INT PRIMARY KEY,
+    signup_date DATE,
+    device_type VARCHAR(20),
+    acquisition_channel VARCHAR(20)
+);
+
+--Booking Table Creation
+
+--BOOKINGS TABLE
+CREATE TABLE bookings (
+    booking_id INT PRIMARY KEY,
+    user_id INT,
+    booking_date DATE,
+    booking_value DECIMAL(10,2),
+    status VARCHAR(20),
+    discount_amount DECIMAL(10,2),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+--MARKETING_SPEND TABLE
+CREATE TABLE marketing_spend (
+    date DATE,
+    channel VARCHAR(20),
+    spend DECIMAL(10,2)
+);
+
+--EVENTS TABLE
+CREATE TABLE events (
+    user_id INT,
+    event_date DATE,
+    event_type VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
