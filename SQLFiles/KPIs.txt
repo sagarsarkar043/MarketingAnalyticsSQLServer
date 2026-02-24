@@ -1,0 +1,763 @@
+create database MA;
+
+use MA;
+
+--Users Table Creation
+
+--USERS TABLE
+CREATE TABLE users (
+    user_id INT PRIMARY KEY,
+    signup_date DATE,
+    device_type VARCHAR(20),
+    acquisition_channel VARCHAR(20)
+);
+
+--Booking Table Creation
+
+--BOOKINGS TABLE
+CREATE TABLE bookings (
+    booking_id INT PRIMARY KEY,
+    user_id INT,
+    booking_date DATE,
+    booking_value DECIMAL(10,2),
+    status VARCHAR(20),
+    discount_amount DECIMAL(10,2),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+--MARKETING_SPEND TABLE
+CREATE TABLE marketing_spend (
+    date DATE,
+    channel VARCHAR(20),
+    spend DECIMAL(10,2)
+);
+
+--EVENTS TABLE
+CREATE TABLE events (
+    user_id INT,
+    event_date DATE,
+    event_type VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- Insert into Users Table
+
+--Insert Data
+INSERT INTO users VALUES
+(1, '2024-01-02', 'iOS', 'Paid'),
+(2, '2024-01-03', 'Android', 'Organic'),
+(3, '2024-01-05', 'Web', 'Paid'),
+(4, '2024-01-08', 'iOS', 'Organic'),
+(5, '2024-01-10', 'Android', 'Paid'),
+(6, '2024-01-15', 'Web', 'Organic'),
+(7, '2024-02-01', 'iOS', 'Paid'),
+(8, '2024-02-03', 'Android', 'Paid'),
+(9, '2024-02-05', 'Web', 'Organic'),
+(10, '2024-02-10', 'iOS', 'Paid'),
+(11, '2024-02-12', 'Android', 'Organic'),
+(12, '2024-02-15', 'Web', 'Paid');
+
+--Insert into BOOKINGS TABLE
+
+INSERT INTO bookings VALUES
+(101, 1, '2024-01-05', 200, 'completed', 20),
+(102, 1, '2024-02-07', 300, 'completed', 30),
+(103, 2, '2024-01-15', 150, 'cancelled', 10),
+(104, 3, '2024-01-20', 400, 'completed', 50),
+(105, 4, '2024-02-12', 250, 'completed', 0),
+(106, 5, '2024-02-15', 500, 'completed', 60),
+(107, 6, '2024-02-18', 180, 'cancelled', 15),
+(108, 7, '2024-02-20', 350, 'completed', 40),
+(109, 8, '2024-02-22', 220, 'completed', 25),
+(110, 9, '2024-03-01', 270, 'completed', 30),
+(111, 10, '2024-03-05', 600, 'completed', 80),
+(112, 11, '2024-03-10', 320, 'completed', 20),
+(113, 12, '2024-03-15', 450, 'cancelled', 50);
+
+
+
+--Insert Data into marketing_spend table
+
+INSERT INTO marketing_spend VALUES
+('2024-01-01', 'Paid', 5000),
+('2024-01-15', 'Paid', 7000),
+('2024-02-01', 'Paid', 8000),
+('2024-02-15', 'Paid', 6000),
+('2024-03-01', 'Paid', 9000),
+('2024-01-01', 'Organic', 1000),
+('2024-01-15', 'Organic', 1200),
+('2024-02-01', 'Organic', 1500),
+('2024-02-15', 'Organic', 1300),
+('2024-03-01', 'Organic', 1400);
+
+--Insert Data into events table
+INSERT INTO events VALUES
+(1, '2024-01-05', 'search'),
+(1, '2024-01-05', 'view'),
+(1, '2024-01-05', 'booking'),
+
+(2, '2024-01-15', 'search'),
+(2, '2024-01-15', 'view'),
+
+(3, '2024-01-20', 'search'),
+(3, '2024-01-20', 'booking'),
+
+(4, '2024-02-12', 'search'),
+(4, '2024-02-12', 'view'),
+(4, '2024-02-12', 'booking'),
+
+(5, '2024-02-15', 'search'),
+(5, '2024-02-15', 'booking'),
+
+(6, '2024-02-18', 'search'),
+
+(7, '2024-02-20', 'search'),
+(7, '2024-02-20', 'view'),
+(7, '2024-02-20', 'booking'),
+
+(8, '2024-02-22', 'search'),
+(8, '2024-02-22', 'booking'),
+
+(9, '2024-03-01', 'search'),
+(9, '2024-03-01', 'view'),
+(9, '2024-03-01', 'booking'),
+
+(10, '2024-03-05', 'search'),
+(10, '2024-03-05', 'booking'),
+
+(11, '2024-03-10', 'search'),
+(11, '2024-03-10', 'booking'),
+
+(12, '2024-03-15', 'search');
+
+Select * from Users;
+Select * from bookings;
+Select * from marketing_spend;
+Select * from events;
+
+
+--KPI1
+/*
+
+For each device type (iOS, Android, Web), calculate the conversion rate, defined as:
+
+The proportion of users who have made at least one booking.
+
+Return:
+
+device_type
+
+conversion_rate
+
+Make sure:
+
+Users without bookings are included in the denominator.
+
+Each user is counted only once, even if they made multiple bookings.
+*/
+
+Select device_type,count(distinct(users.user_id))*1.0/count(distinct(bookings.user_id)) from users
+left join bookings
+on bookings.user_id=users.user_id
+where bookings.status='Completed'
+group by device_type
+;
+
+--KPI 2
+
+/*
+For each device type, calculate the total number of bookings.
+
+Return:
+
+device_type
+
+total_bookings
+
+*/
+
+Select * from bookings;
+Select * from users;
+
+Select u.device_type,count(u.user_id) from users as u
+join bookings b
+on b.user_id=u.user_id
+group by u.device_type
+;
+
+/*
+--KPI 3
+Calculate the overall cancellation rate, defined as:
+
+The proportion of total bookings that were cancelled.
+
+Return a single column:
+
+cancellation_rate
+*/
+
+
+SELECT  
+SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END)*1.0 
+/ COUNT(*) AS cancellation_rate 
+FROM bookings;
+
+--KPI 4
+/*
+Calculate the total booking value per month.
+
+Return:
+
+month
+
+total_booking_value
+
+The results should be grouped by calendar month.
+*/
+
+SELECT 
+    FORMAT(booking_date, 'yyyy-MM') AS month,
+    SUM(booking_value)
+FROM bookings
+GROUP BY FORMAT(booking_date, 'yyyy-MM');
+
+--KPI 5
+
+/*
+For each acquisition channel, calculate ROAS (Return on Ad Spend) defined as:
+Commission Revenue ÷ Marketing Spend
+Assume:
+Commission rate = 15%
+Include all bookings
+Return:
+channel
+roas
+*/
+Select * from users;
+
+Select * from bookings;
+Select * from marketing_spend;
+
+SELECT m.channel, 
+       SUM(b.booking_value) * 0.15 / SUM(m.spend) AS roas
+FROM bookings b
+JOIN users u ON b.user_id = u.user_id
+JOIN marketing_spend m  
+     ON u.acquisition_channel = m.channel
+GROUP BY m.channel;
+ 
+--KPI5
+/*
+Question:
+Identify all users who have made more than 3 bookings.
+Return:
+user_id
+Each user should appear only once.
+*/
+
+Select bookings.user_id , count(bookings.user_id) as Count 
+from bookings
+group by bookings.user_id
+having count(bookings.user_id)>3;
+
+--KPI 6
+/*
+Calculate the average booking value across all bookings.
+Return:
+average_booking_value
+*/
+
+Select Avg(bookings.booking_value) as 'Average Booking Amount'
+from bookings ;
+
+--KPI7 
+
+/*
+
+*/
+
+--KPI 8
+/*
+Question
+
+Write a SQL query to calculate the total number of bookings made on each booking date.
+Return:
+booking_date
+total_bookings
+
+*/
+Select booking_date ,count(booking_id) as 'Total Bookings' from bookings
+group by booking_date;
+;
+
+--KPI 9
+
+/*
+Write a SQL query to find the top 5 users who have generated the 
+highest total booking value.
+Return:
+user_id
+total_value (sum of booking_value per user)
+Sort the results in descending order of total_value.
+*/
+
+Select top 5 user_id ,SUM(booking_value) as 'total_value' from bookings
+group by user_id
+order by 'total_value' desc;
+ 
+--KPI 10
+/*
+Write a SQL query to calculate the total revenue earned by the platform, assuming the commission rate is 15% of the booking value.
+Return:
+revenue
+*/
+Select * from bookings;
+
+Select 0.15*(Sum(booking_value)) as 'Commission Value' from bookings;
+
+ --KPI 11
+/*
+Write a SQL query to calculate the total number of distinct users 
+who have made at least one booking.
+Return:
+total_active_users
+*/
+
+Select Distinct(user_id) from bookings;
+Select * from bookings;
+Select * from users;
+
+--KPI 12
+/*
+Write a SQL query to calculate the total number of bookings made in the 
+last 30 days from today.
+Return:
+total_bookings_last_30_days
+*/
+
+SELECT COUNT(*) 
+FROM bookings
+WHERE booking_date >= DATEADD(DAY, -30, GETDATE());
+
+--KPI 13
+/*
+Write a SQL query to calculate the conversion rate, defined as:
+The proportion of unique users who 
+made a booking out of the unique users who performed a search.
+Return:
+conversion_rate
+*/
+
+Select * from events;
+Select Count(DISTINCT CASE WHEN event_type='booking' THEN user_id END)*1.0
+/COUNT(DISTINCT CASE WHEN event_type='search' THEN user_id END) as 'Conversion Rate'
+ from events;
+
+ --KPI 14
+ /*
+ Write a SQL query to calculate the total discount amount given across all bookings.
+Return:
+total_discount
+ */
+
+Select * from bookings;
+
+Select SUM(discount_amount) as 'total_discount' from Bookings
+
+--KPI 15
+/*
+Write a SQL query to find all users who have no bookings.
+Return:
+user_id
+*/
+
+Select * from users;
+Select * from bookings;
+
+Select u.user_id from users u
+left join bookings b
+on u.user_id=b.user_id
+where b.user_id is null;
+
+--KPI 16
+/*
+Write a SQL query to calculate the cancellation rate per device type.
+Cancellation rate is defined as:
+Number of cancelled bookings ÷ Total bookings
+Return:
+device_type
+cancel_rate
+*/
+
+Select * from bookings;
+--Select * from events;
+select * from users;
+
+
+Select u.device_type ,SUM(Case when b.status='cancelled' then 1 else 0 End)*1.0/count(b.booking_id)
+as 'cancel_rate' from bookings b
+join users u on u.user_id=b.user_id
+group by u.device_type;
+
+--KPI 17
+/*
+Write a SQL query to calculate the ROAS (Return on Ad Spend) per channel per month.
+ROAS is defined as:
+Commission Revenue ÷ Marketing Spend
+
+Return:
+channel
+month
+roas
+*/
+
+Select * from Users;
+Select * from bookings;
+Select * from marketing_spend;
+Select * from events;
+
+SELECT m.channel, 
+format(m.date,'yyyy-mm') AS months, 
+SUM(b.booking_value)*0.15 / SUM(m.spend) AS roas 
+FROM marketing_spend m 
+JOIN users u ON u.acquisition_channel=m.channel 
+JOIN bookings b ON b.user_id=u.user_id 
+GROUP BY m.channel, format(m.date,'yyyy-mm'); 
+ 
+ --KPI 18
+
+/*
+Write a SQL query to calculate the number of users who signed up in each month.
+
+Return:
+cohort (signup month)
+total_users
+Group the results by month of signup.
+*/
+
+Select format(signup_date,'mm-yyyy') as 'signupmonth',COUNT(user_id) as total_users from users
+group by format(signup_date,'mm-yyyy');
+
+--KPI 19
+/*
+Write a SQL query to calculate the Month-1 retention rate for 
+users who signed up between January 1, 2024 and January 31, 2024.
+
+Month-1 retention rate is defined as:
+
+(Number of January 2024 signup users who made at least one booking in February 2024)
+÷
+(Total number of users who signed up in January 2024)
+
+Return:
+
+month_1_retention_rate
+*/
+
+Select * from Users;
+
+SELECT COUNT(DISTINCT b.user_id)*1.0,SUM(CASE When signup_date BETWEEN '2024-01-01' AND '2024-01-31' then 1 else 0  END) from users u
+join bookings b
+on b.user_id=u.user_id
+
+SELECT COUNT(DISTINCT b.user_id)*1.0 / 
+(SELECT COUNT(*) FROM users WHERE signup_date BETWEEN '2024-01-01' AND '2024-01-31') 
+FROM bookings b 
+JOIN users u ON b.user_id=u.user_id 
+WHERE u.signup_date BETWEEN '2024-01-01' AND '2024-01-31' 
+AND b.booking_date BETWEEN '2024-02-01' AND '2024-02-28';
+
+--KPI 20
+/*
+Write a SQL query to find the top 3 acquisition channels by total revenue.
+Revenue is calculated as:
+15% of total booking value.
+Return:
+acquisition_channel
+revenue
+Sort the results in descending order of revenue and limit the output to 
+the top 3 channels.
+*/
+
+Select * from bookings;
+Select * from users;
+Select * from events;
+Select * from marketing_spend;
+
+Select top 3 u.acquisition_channel,SUM(b.booking_value)*0.15 as revenue from users u
+join bookings b on
+b.user_id=u.user_id
+group by u.acquisition_channel
+order by SUM(b.booking_value)*0.15 desc
+;
+
+--KPI 21
+/*
+Write a SQL query to calculate the running (cumulative) revenue by booking date.
+Revenue is defined as:
+15% of total booking value per day.
+Return:
+booking_date
+running_revenue
+The running revenue should show the cumulative total revenue up to that date,
+ ordered chronologically.
+*/
+SELECT booking_date, 
+SUM(SUM(booking_value)*0.15) OVER (ORDER BY booking_date) AS running_revenue 
+FROM bookings 
+GROUP BY booking_date;
+
+--One spin off SQL Query where we are ranking the total booking value along with the booking date
+
+SELECT b.booking_date, SUM(b.booking_value),
+RANK() OVER (ORDER BY SUM(b.booking_value)) AS running_revenue 
+FROM bookings b
+GROUP BY booking_date;
+
+--KPI 22
+/*
+Write a SQL query to:
+Calculate the total booking value per user.
+Rank users based on their total booking value in 
+descending order (highest spender gets rank 1).
+Return:
+user_id
+total_value
+rank
+*/
+
+Select user_id,SUM(booking_value) as total_value,RANK() over (Order by SUM(booking_value) desc) as rank from bookings
+group by user_id;
+
+--KPI 23
+/*
+Write a SQL query to calculate the average Customer Acquisition Cost (CAC) per channel.
+CAC is defined as:
+Total marketing spend for a channel ÷ Number of distinct users acquired 
+through that channel.
+Return:
+channel
+cac
+*/
+Select * from marketing_spend;
+Select * from users;
+
+Select SUM(marketing_spend.spend),marketing_spend.channel as totalmarketingspend from marketing_spend
+group by marketing_spend.channel;
+
+--Select SUM(Case WHEN channel='Paid' then 1 else 0 END) from marketing_spend;
+
+--Select COUNT(Case WHEN channel='Paid' then 1 else 0 END) from marketing_spend;
+
+SELECT channel, 
+SUM(spend)/COUNT(DISTINCT u.user_id) AS cac 
+FROM marketing_spend m 
+JOIN users u ON u.acquisition_channel=m.channel 
+GROUP BY channel;
+
+--KPI 24
+/*
+Write a SQL query to find all users who made at least one 
+repeat booking within 30 days of a previous booking.
+Return:
+user_id
+Each user should appear only once in the result.
+*/
+
+SELECT DISTINCT b1.user_id
+FROM bookings b1
+JOIN bookings b2
+    ON b1.user_id = b2.user_id
+    AND b2.booking_date > b1.booking_date
+    AND b2.booking_date <= DATEADD(DAY, 30, b1.booking_date);
+
+--KPI 25
+/*
+Write a SQL query to calculate the share of total bookings by device type.
+Booking share is defined as:
+(Number of bookings from a device type)
+÷
+(Total number of bookings across all devices)
+Return:
+device_type
+booking_share
+The booking share should be expressed as a decimal value (e.g., 0.35 for 35%).
+*/
+
+Select device_type,count(*)*1.0/Sum(count(*)) over ()  from bookings join users
+on users.user_id=bookings.user_id
+group by device_type;
+
+
+--KPI 26
+/*
+Paid Search spend increased in March.
+You suspect it may be cannibalizing Organic traffic.
+Write a SQL query to compare monthly bookings by acquisition channel.
+Return:
+month
+acquisition_channel
+total_bookings
+*/
+
+Select format(bookings.booking_date,'yyyy-MM') as months ,users.acquisition_channel,sum(booking_value)from bookings
+join users on users.user_id=bookings.user_id
+group by format(bookings.booking_date,'yyyy-MM'),users.acquisition_channel 
+order by  format(bookings.booking_date,'yyyy-MM'),users.acquisition_channel;
+
+--KPI 26
+
+/*
+ Question
+Agoda earns 15% commission per booking.
+Marketing spend is in marketing_spend.
+Calculate contribution per acquisition channel.
+Contribution = Commission Revenue − Marketing Spend
+Return:
+channel
+contribution
+*/
+
+Select Sum((booking_value*0.15)-m.spend),u.acquisition_channel FROM marketing_spend m
+JOIN users u ON u.acquisition_channel = m.channel
+JOIN bookings b ON b.user_id = u.user_id
+group by u.acquisition_channel;
+
+Select * from marketing_spend;
+
+--KPI 27
+/*
+Calculate total realized revenue excluding cancelled bookings.
+*/
+SELECT 
+    SUM(booking_value)*0.15 AS realized_revenue
+FROM bookings
+WHERE status <> 'cancelled';
+
+--KPI 28
+/*
+Find each user’s first booking date.
+Return:
+user_id
+first_booking_date
+*/
+
+SELECT 
+    user_id,
+    MIN(booking_date) AS first_booking_date
+FROM bookings
+GROUP BY user_id;
+
+--KPI 29
+/*
+Write a SQL query to calculate the monthly booking count for Paid 
+and Organic channels, so that the team can compare trends and detect possible cannibalization.
+Return:
+month
+paid (number of Paid bookings)
+organic (number of Organic bookings)
+Group the results by month.
+*/
+SELECT format(booking_date,'yyyy-MM'), SUM(CASE WHEN acquisition_channel='Paid' THEN 1 END) AS paid, 
+SUM(CASE WHEN acquisition_channel='Organic' THEN 1 END) AS organic FROM bookings b JOIN users u 
+ON b.user_id=u.user_id GROUP BY format(booking_date,'yyyy-MM');
+
+--KPI 30
+/*
+Write a SQL query to calculate the contribution per acquisition channel.
+Contribution is defined as:
+(Total Commission Revenue) − (Total Marketing Spend)
+Return:
+acquisition_channel
+contribution
+*/
+
+SELECT 
+    u.acquisition_channel, 
+    SUM(b.booking_value*0.15-m.spend) AS contribution 
+FROM bookings b 
+JOIN users u 
+    ON b.user_id = u.user_id 
+JOIN marketing_spend m 
+    ON u.acquisition_channel = m.channel 
+GROUP BY u.acquisition_channel;
+
+--KPI 31
+/*
+Identify users who have not made any booking in the last 90 days.
+Return:
+user_id
+last_booking_date
+*/
+
+SELECT 
+    user_id,
+    MAX(booking_date) AS last_booking_date
+FROM bookings
+GROUP BY user_id
+HAVING MAX(booking_date) < DATEADD(DAY, -90, GETDATE());
+
+--KPI 32
+/*
+Calculate the number of days between consecutive bookings for each user.
+Return:
+user_id
+booking_date
+days_since_last_booking
+*/
+SELECT 
+    user_id,
+    booking_date,
+    DATEDIFF(
+        DAY,
+        LAG(booking_date) OVER (
+            PARTITION BY user_id 
+            ORDER BY booking_date
+        ),
+        booking_date
+    ) AS days_since_last_booking
+FROM bookings;
+
+--KPI33
+/*
+
+Write a SQL query to calculate the net LTV per signup cohort 
+(grouped by signup month).
+Net LTV is defined as:
+Sum of (15% of booking_value − discount_amount)
+for all bookings made by users in the same signup month.
+Return:
+signup_month (cohort)
+total_net_ltv
+Group the results by signup month.*/
+
+
+SELECT format( u.signup_date,'yyyy-MM'), 
+SUM(b.booking_value*0.15 - b.discount_amount) 
+FROM users u 
+JOIN bookings b ON u.user_id=b.user_id 
+GROUP BY format( u.signup_date,'yyyy-MM');
+
+--KPI 34
+/*
+Write a SQL query to calculate the true incremental contribution from Paid users,
+ excluding users who previously made an Organic booking before being acquired via Paid.
+Return:
+total_true_incremental_contribution
+*/
+SELECT 
+SUM(b.booking_value*0.15 - b.discount_amount) AS true_incremental_contribution
+FROM users u
+JOIN bookings b 
+    ON u.user_id = b.user_id
+WHERE u.acquisition_channel = 'Paid'
+AND u.user_id NOT IN (
+    SELECT u2.user_id
+    FROM users u2
+    JOIN bookings b2 
+        ON u2.user_id = b2.user_id
+    WHERE u2.acquisition_channel = 'Organic'
+);
+
+
+
